@@ -86,7 +86,7 @@ int main(int argc, char** argv)
 			fprintf(stderr, "Oops. failed to set mode.");
 			return -1;
 		}
-		if( ExtTextOut(hdc, 128,128, 0, NULL, "test", 4, NULL) == 0 ) {
+		if( ExtTextOut(hdc, 0,0, 0, NULL, "test", 4, NULL) == 0 ) {
 			fprintf(stderr, "Oops. failed to set text color.");
 			return -1;
 		}
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 	unsigned char* cdata = malloc(width*height*4);
 	for(int y=0;y<height;++y){
 		for(int x=0;x<width;++x){
-			((unsigned int*)cdata)[y*width + x] = *((unsigned int*)&data[(y*width+x)*3]) & 0xffffff;
+			((unsigned int*)cdata)[(height-y-1)*width + x] = *((unsigned int*)&data[(y*width+x)*3]) & 0xffffff;
 		}
 	}
 	cairo_surface_t* surf = cairo_image_surface_create_for_data(cdata, CAIRO_FORMAT_RGB24, width, height, width*4);
