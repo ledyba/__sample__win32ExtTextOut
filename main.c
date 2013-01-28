@@ -124,7 +124,9 @@ int main(int argc, char** argv)
 	}
 	
 	//strideの問題があるのでコピー
-	// XXX:…なぜか上下反転してる…。
+	// 上下反転してるのはbitmapの仕様
+	// http://www.umekkii.jp/data/computer/file_format/bitmap.cgi
+	// "通常画像データは左下から右上に記録されています。つまり、上下が反転しています。"
 	unsigned char* cdata = malloc(width*height*4);
 	for(int y=0;y<height;++y){
 		for(int x=0;x<width;++x){
