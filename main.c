@@ -20,8 +20,9 @@ int main(int argc, char** argv)
 			fprintf(stderr, "Oops. failed to create compatible dc.");
 			return -1;
 		}
+		// cairoにおけるcairo_surface_t的な存在。
 		HBITMAP bmp;
-		// .bmpのヘッダを書かないとRGBの生データを流し込めない（驚愕）
+		// .bmpのヘッダの構造体。これを書かないとRGBデータを殆ど扱えない（驚愕）
 		BITMAPINFOHEADER ih;
 		{
 			memset(&ih, 0, sizeof(BITMAPINFOHEADER));
@@ -47,7 +48,8 @@ int main(int argc, char** argv)
 				fprintf(stderr, "Oops. failed to create bitmap.");
 				return -1;
 			}
-			// 描画先に指定。この関数何にでも使えちゃうので型安全性という概念はどこにもないのでは
+			// HDCの実際に描画される先としてbitmapを指定。
+			// この関数はブラシ（？）とかフォントとかにも使えるらしい。型安全性はたぶん無い。
 			if( SelectObject(hdc, bmp) == 0 ) {
 				fprintf(stderr, "Oops. failed to select object.");
 				return -1;
@@ -55,7 +57,7 @@ int main(int argc, char** argv)
 		}
 		HFONT font;
 		{
-			// サンプルからとってきてフォントを作成
+			// サンプルからとってきたフォントを作成するサンプルそのもの
 			LOGFONT logfont;
 			memset (&logfont, 0, sizeof (logfont));
 
@@ -84,13 +86,13 @@ int main(int argc, char** argv)
 				return -1;
 			}
 		}
-		// 背景色を指定してるけど、あとでトランスパレントを指定してるので多分意味ない
-		if( SetBkColor(hdc, RGB(0,255,255)) == CLR_INVALID ) {
+		// XXX: テキストの色を指定してるんだけど反映されないです先生
+		if( SetTextColor(hdc, RGB(255,255,0)) == CLR_INVALID ) {
 			fprintf(stderr, "Oops. failed to set text color.");
 			return -1;
 		}
-		// XXX: テキストの色を指定してるんだけど反映されないです先生
-		if( SetTextColor(hdc, RGB(255,255,0)) == CLR_INVALID ) {
+		// 背景色を指定してるけど、下でトランスパレントを指定してるので多分意味ない
+		if( SetBkColor(hdc, RGB(0,255,255)) == CLR_INVALID ) {
 			fprintf(stderr, "Oops. failed to set text color.");
 			return -1;
 		}
@@ -106,8 +108,9 @@ int main(int argc, char** argv)
 			return -1;
 		}
 		
-		// CreateDIBitmapすると新しいバッファが作られてそっちに描画されちゃうので、
-		// この関数でそのバッファを読み出す
+		// CreateDIBitmapすると新しいバッファが作られてそっちに描画される。
+		// cairo_image_surface_create_for_dataみたいに既存のデータに描画されるわけではない。
+		// この関数でそのバッファを読み戻す。
 		GetDIBits(
 				hdc,           // デバイスコンテキストのハンドル
 				bmp,      // ビットマップのハンドル
@@ -123,7 +126,7 @@ int main(int argc, char** argv)
 		DeleteDC(hdc);
 	}
 	
-	//strideの問題があるのでコピー
+	// cairoのRGBはあくまでピクセルごとに４バイト(1バイト余る)なのでそれに合わせる
 	// 上下反転してるのはbitmapの仕様
 	// http://www.umekkii.jp/data/computer/file_format/bitmap.cgi
 	// "通常画像データは左下から右上に記録されています。つまり、上下が反転しています。"
@@ -134,7 +137,7 @@ int main(int argc, char** argv)
 		}
 	}
 	
-	// cairoを使ってpngにコピー
+	// cairoを使ってpngに保存
 	cairo_surface_t* surf = cairo_image_surface_create_for_data(cdata, CAIRO_FORMAT_RGB24, width, height, width*4);
 	if(cairo_surface_status(surf) != CAIRO_STATUS_SUCCESS){
 		fprintf(stderr, "Oops. Invalid status: %s", cairo_status_to_string(cairo_surface_status(surf)));
