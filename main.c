@@ -102,6 +102,8 @@ int main(int argc, char** argv)
 			fprintf(stderr, "Oops. failed to set mode.");
 			return -1;
 		}
+		// 色を取得して出力。RGB(255,255,0)の結果は？
+		fprintf(stdout, "color: %08x\n", GetTextColor(hdc));
 		// 文字出力
 		if( ExtTextOut(hdc, 0,0, 0, NULL, "test", 4, NULL) == 0 ) {
 			fprintf(stderr, "Oops. failed to set text color.");
